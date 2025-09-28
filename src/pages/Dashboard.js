@@ -31,16 +31,9 @@ export default function Dashboard() {
       status: "active",
       type: "service",
       size: "2.4 MB"
-    },
-    { 
-      id: 2,
-      name: "NDA - TechCorp.pdf", 
-      date: "2024-08-10",
-      status: "pending",
-      type: "nda",
-      size: "1.1 MB"
     }
   ]);
+
   const [loading, setLoading] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
@@ -539,4 +532,5 @@ export default function Dashboard() {
       </AnimatePresence>
     </div>
   );
+
 }
