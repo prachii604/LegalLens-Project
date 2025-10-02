@@ -21,6 +21,19 @@ import {
 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
+import UploadPdf from "./UploadPdf";
+
+export default function Dashboard() {
+  return (
+    <div>
+      <h2>Dashboard</h2>
+      <UploadPdf presignApiUrl="https://YOUR_API_GATEWAY_URL/dev/presign" />
+    </div>
+  );
+}
+
+
+
 export default function Dashboard() {
   const [contracts, setContracts] = useState([
     // Sample data for demonstration
