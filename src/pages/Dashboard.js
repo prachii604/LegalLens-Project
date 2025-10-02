@@ -678,11 +678,11 @@ export default function Dashboard() {
     try {
       // Step 1: Ask API Gateway/Lambda for a presigned URL
       const presignResp = await fetch(API_URL, {
-        method: "POST", // use POST for presign request
+        method: "POST", // Lambda is expecting POST
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           filename: file.name,
-          content_type: file.type || "application/octet-stream"
+          content_type: file.type || "application/pdf"   // ✅ fallback matches Lambda
         })
       });
 
@@ -701,9 +701,12 @@ export default function Dashboard() {
       if (!uploadURL) throw new Error("No presigned upload URL in response");
 
       // Step 2: Upload file directly to S3 using the presigned URL
+      
       const putResp = await fetch(uploadURL, {
         method: "PUT",
-        headers: { "Content-Type": file.type || "application/octet-stream" },
+        headers: {
+          "Content-Type": file.type || "application/pdf" // ✅ keep consistent with presign
+        },
         body: file
       });
 
