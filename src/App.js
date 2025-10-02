@@ -20,13 +20,14 @@
 // }
 
 
+// src/App.js
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Landing from "./pages/Landing";
 import Login from "./pages/Login";
 import Register from "./pages/Register";
 import Dashboard from "./pages/Dashboard";
 import Profile from "./pages/Profile";
-import UploadPdf from "./pages/UploadPdf"; // ⬅️ import the new page
+import Upload from "./pages/Upload";
 
 export default function App() {
   return (
@@ -37,13 +38,9 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
-        <Route
-          path="/upload"
-          element={
-            <UploadPdf presignApiUrl="https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/MyStage" />
-          }
-        />
+        <Route path="/upload" element={<Upload />} />
       </Routes>
     </Router>
   );
 }
+

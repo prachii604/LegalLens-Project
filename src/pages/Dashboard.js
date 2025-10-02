@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, 
@@ -19,24 +20,9 @@ import {
   Grid3X3,
   List
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
-
-import UploadPdf from "./UploadPdf";
-
-export default function Dashboard() {
-  return (
-    <div>
-      <h2>Dashboard</h2>
-      <UploadPdf presignApiUrl="https://YOUR_API_GATEWAY_URL/dev/presign" />
-    </div>
-  );
-}
-
-
 
 export default function Dashboard() {
   const [contracts, setContracts] = useState([
-    // Sample data for demonstration
     { 
       id: 1,
       name: "Service Agreement 2024.pdf", 
@@ -54,7 +40,6 @@ export default function Dashboard() {
   const [dragOver, setDragOver] = useState(false);
   const navigate = useNavigate();
 
-  // Get user info from localStorage
   const [user, setUser] = useState({ name: "John Doe", email: "john@example.com" });
 
   useEffect(() => {
