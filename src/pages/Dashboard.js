@@ -515,10 +515,18 @@ export default function Dashboard() {
     return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
   };
 
+  // const handleLogout = () => {
+  //   localStorage.removeItem("cq_user");
+  //   navigate("/");
+  // };
   const handleLogout = () => {
-    localStorage.removeItem("cq_user");
-    navigate("/");
-  };
+  localStorage.removeItem("cq_user");
+  sessionStorage.removeItem("idToken");
+  sessionStorage.removeItem("accessToken");
+  sessionStorage.removeItem("refreshToken");
+  // then navigate to login
+  navigate("/login");
+};
 
   const handleUpload = async (file) => {
     if (!file) return;
