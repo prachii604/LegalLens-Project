@@ -1361,7 +1361,7 @@ export default function Dashboard() {
         headers: {
           "Content-Type": "application/json",
           // send raw idToken (no 'Bearer ' prefix) to match Cognito authorizer configuration
-          ...(idToken ? { Authorization: idToken } : {}),
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
       });
 
