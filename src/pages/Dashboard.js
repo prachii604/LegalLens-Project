@@ -1208,6 +1208,7 @@
 
 
 // src/pages/Dashboard.js
+// src/pages/Dashboard.js
 import React, { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
@@ -1226,14 +1227,14 @@ import {
   TrendingUp,
   FileCheck,
   AlertCircle,
-  CheckCircle, // ✅ success icon
+  CheckCircle,
   Plus,
   Grid3X3,
   List,
-  X, // ✅ close icon
+  X,
 } from "lucide-react";
 
-const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod"; // base URL -> we'll call /contracts
+const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod"; // base URL
 
 // Client-side max allowed file size (30 MB)
 const MAX_FILE_SIZE = 30 * 1024 * 1024;
@@ -1350,9 +1351,7 @@ export default function Dashboard() {
 
     try {
       setLoading(true);
-      // Prefer sending Authorization header if idToken present
       const idToken = sessionStorage.getItem("idToken");
-      // Debug log (you can remove or redact later). Logs token length and first 10 chars.
       console.log("fetchContracts: idToken length:", idToken ? idToken.length : null, "start:", idToken ? idToken.slice(0, 10) : null);
 
       const params = new URLSearchParams({ userId });
@@ -1360,7 +1359,7 @@ export default function Dashboard() {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          // send raw idToken (no 'Bearer ' prefix) to match Cognito authorizer configuration
+          // IMPORTANT: send as Bearer token (standard format for Cognito authorizer)
           ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
       });
@@ -1373,19 +1372,15 @@ export default function Dashboard() {
       }
 
       const data = await resp.json();
-      // Expecting an array of items from DynamoDB query (same shape used when inserting)
-      // Map to your UI contract shape if necessary
       const mapped = (Array.isArray(data) ? data : []).map((it) => ({
         id: it.contractId || `${it.uploadDate}_${it.name}`,
         name: it.name,
-        // uploadDate uses format YYYYMMDDThhmmssZ in lambda; keep human-friendly:
         date: it.uploadDate ? `${it.uploadDate.slice(0,4)}-${it.uploadDate.slice(4,6)}-${it.uploadDate.slice(6,8)}` : (it.uploadDate || "").slice(0, 10),
         status: it.status || "active",
         size: it.size ? `${(it.size / (1024 * 1024)).toFixed(1)} MB` : it.size || "n/a",
         s3Key: it.s3Key || it.objectKey || null,
       }));
 
-      // Show newest first
       setContracts(mapped.reverse());
     } catch (err) {
       console.error("fetchContracts error:", err);
@@ -1423,17 +1418,15 @@ export default function Dashboard() {
     setLoading(true);
 
     try {
-      // 1) Ask API for a presigned URL and also write metadata to DynamoDB (your Lambda does this)
       const idToken = sessionStorage.getItem("idToken");
-      // Debug log
       console.log("handleUpload: sending presign request. idToken length:", idToken ? idToken.length : null);
 
       const presignResp = await fetch(`${API_URL}/contracts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          // send raw idToken (no 'Bearer ' prefix)
-          ...(idToken ? { Authorization: idToken } : {}),
+          // IMPORTANT: send as Bearer token (standard format)
+          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
         },
         body: JSON.stringify({
           filename: file.name,
@@ -1455,18 +1448,16 @@ export default function Dashboard() {
       }
 
       const presignData = await presignResp.json();
-      // If your Lambda returns body as string (proxy), handle it:
       const parsed =
         typeof presignData.body === "string" ? JSON.parse(presignData.body) : presignData;
 
       const uploadURL =
-        parsed.uploadUrl || parsed.uploadURL || parsed.upload_url || parsed.url || parsed.uploadUrl;
+        parsed.uploadUrl || parsed.uploadURL || parsed.upload_url || parsed.url;
       const objectKey = parsed.objectKey || parsed.object_key || parsed.key || parsed.s3Key;
-      const contractId = parsed.contractId || parsed.contract_id;
 
       if (!uploadURL) throw new Error("No presigned upload URL in response");
 
-      // 2) PUT directly to S3 using the presigned URL
+      // upload to S3
       const putResp = await fetch(uploadURL, {
         method: "PUT",
         headers: {
@@ -1482,7 +1473,7 @@ export default function Dashboard() {
         throw new Error(`S3 upload failed: ${putResp.status} ${txt}`);
       }
 
-      // 3) Update UI - re-fetch from DB so UI matches DB
+      // refresh listing
       await fetchContracts();
 
       openAlert("Upload successful", "Your PDF has been uploaded successfully.", "success");
