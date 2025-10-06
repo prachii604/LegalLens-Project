@@ -1219,7 +1219,6 @@ import {
   User,
   Search,
   Filter,
-  Download,
   Eye,
   Trash2,
   Calendar,
@@ -1608,23 +1607,23 @@ export default function Dashboard() {
   };
 
   // Force a download with the original filename
-  const handleDownload = async (contract) => {
-    try {
-      setLoading(true);
-      const url = await getSignedGetUrl(contract.s3Key);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = contract.name || "document.pdf";
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    } catch (e) {
-      console.error(e);
-      openAlert("Download failed", e.message || "Unknown error", "error");
-    } finally {
-      setLoading(false);
-    }
-  };
+  // const handleDownload = async (contract) => {
+  //   try {
+  //     setLoading(true);
+  //     const url = await getSignedGetUrl(contract.s3Key);
+  //     const a = document.createElement("a");
+  //     a.href = url;
+  //     a.download = contract.name || "document.pdf";
+  //     document.body.appendChild(a);
+  //     a.click();
+  //     a.remove();
+  //   } catch (e) {
+  //     console.error(e);
+  //     openAlert("Download failed", e.message || "Unknown error", "error");
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-regal-offwhite to-regal-beige/30 px-6 py-8">
@@ -1961,7 +1960,7 @@ export default function Dashboard() {
                          {viewMode === "grid" && <span className="text-sm">View</span>}
                        </motion.button>
 
-                        <motion.button
+                        {/* <motion.button
                           onClick={() => handleDownload(contract)}
                           disabled={!contract.s3Key}
                           className="flex items-center gap-2 px-4 py-2 bg-regal-gold/20 text-regal-burgundy rounded-xl hover:bg-regal-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
@@ -1970,7 +1969,7 @@ export default function Dashboard() {
                         >
                          <Download className="w-4 h-4" />
                          {viewMode === "grid" && <span className="text-sm">Download</span>}
-                       </motion.button>
+                       </motion.button> */}
 
                        <motion.button
                          onClick={() => handleDeleteContract(contract.id)}
@@ -1989,7 +1988,7 @@ export default function Dashboard() {
          </AnimatePresence>
        </motion.div>
 
-       {/* Quick Actions Floating Button */}
+       {/* Quick Actions Floating Button
        <motion.div
          className="fixed bottom-8 right-8"
          initial={{ opacity: 0, scale: 0 }}
@@ -2011,7 +2010,7 @@ export default function Dashboard() {
          >
            <Plus className="w-6 h-6" />
          </motion.button>
-       </motion.div>
+       </motion.div> */}
 
        {/* Loading Overlay */}
        <AnimatePresence>
