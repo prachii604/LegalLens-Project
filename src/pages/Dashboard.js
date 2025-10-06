@@ -1509,9 +1509,48 @@ export default function Dashboard() {
 
   const handleProfile = () => navigate("/profile");
 
-  const handleDeleteContract = (id) => {
-    setContracts((prev) => prev.filter((contract) => contract.id !== id));
+  // const handleDeleteContract = (id) => {
+  //   setContracts((prev) => prev.filter((contract) => contract.id !== id));
+  // };
+  const handleDeleteContract = async (id) => {
+    const item = contracts.find(c => c.id === id);
+    if (!item) return;
+
+    if (!window.confirm(`Delete "${item.name}"? This can't be undone.`)) return;
+
+    const idToken = sessionStorage.getItem("idToken");
+    const userId = getUserId();
+
+    try {
+      setLoading(true);
+      const resp = await fetch(`${API_URL}/contracts`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          ...(idToken ? { Authorization: idToken } : {}),
+        },
+        body: JSON.stringify({
+          action: "delete",
+          contractId: id,        // this is it.contractId from DynamoDB (you map to .id)
+          objectKey: item.s3Key, // pass S3 key so backend can delete the file
+          userId: userId,
+        }),
+      });
+
+      const text = await resp.text();
+      if (!resp.ok) throw new Error(text || "Delete failed");
+
+      // Success → remove from UI
+      setContracts(prev => prev.filter(c => c.id !== id));
+      openAlert("Deleted", "The contract was removed.", "success");
+    } catch (e) {
+      console.error(e);
+      openAlert("Delete failed", e.message || "Unknown error", "error");
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   const filteredContracts = contracts.filter((contract) => {
     const matchesSearch = contract.name
@@ -1606,24 +1645,6 @@ export default function Dashboard() {
     }
   };
 
-  // Force a download with the original filename
-  // const handleDownload = async (contract) => {
-  //   try {
-  //     setLoading(true);
-  //     const url = await getSignedGetUrl(contract.s3Key);
-  //     const a = document.createElement("a");
-  //     a.href = url;
-  //     a.download = contract.name || "document.pdf";
-  //     document.body.appendChild(a);
-  //     a.click();
-  //     a.remove();
-  //   } catch (e) {
-  //     console.error(e);
-  //     openAlert("Download failed", e.message || "Unknown error", "error");
-  //   } finally {
-  //     setLoading(false);
-  //   }
-  // };
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-regal-offwhite to-regal-beige/30 px-6 py-8">
