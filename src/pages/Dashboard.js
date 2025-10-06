@@ -1360,7 +1360,7 @@ export default function Dashboard() {
         headers: {
           "Content-Type": "application/json",
           // IMPORTANT: send as Bearer token (standard format for Cognito authorizer)
-          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          ...(idToken ? { Authorization: idToken } : {}),
         },
       });
 
@@ -1426,7 +1426,7 @@ export default function Dashboard() {
         headers: {
           "Content-Type": "application/json",
           // IMPORTANT: send as Bearer token (standard format)
-          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          ...(idToken ? { Authorization: idToken} : {}),
         },
         body: JSON.stringify({
           filename: file.name,
