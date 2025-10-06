@@ -1233,7 +1233,7 @@ import {
   X, // ✅ close icon
 } from "lucide-react";
 
-const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod";
+const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod"; // base URL -> we'll call /contracts
 
 // Client-side max allowed file size (30 MB)
 const MAX_FILE_SIZE = 30 * 1024 * 1024;
@@ -1340,7 +1340,7 @@ export default function Dashboard() {
     return null;
   };
 
-  // Fetch contracts from API (expects GET ${API_URL}?userId=...)
+  // Fetch contracts from API (expects GET ${API_URL}/contracts?userId=...)
   const fetchContracts = async () => {
     const userId = getUserId();
     if (!userId) {
@@ -1352,12 +1352,16 @@ export default function Dashboard() {
       setLoading(true);
       // Prefer sending Authorization header if idToken present
       const idToken = sessionStorage.getItem("idToken");
+      // Debug log (you can remove or redact later). Logs token length and first 10 chars.
+      console.log("fetchContracts: idToken length:", idToken ? idToken.length : null, "start:", idToken ? idToken.slice(0, 10) : null);
+
       const params = new URLSearchParams({ userId });
-      const resp = await fetch(`${API_URL}?${params.toString()}`, {
+      const resp = await fetch(`${API_URL}/contracts?${params.toString()}`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
-          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          // send raw idToken (no 'Bearer ' prefix) to match Cognito authorizer configuration
+          ...(idToken ? { Authorization: idToken } : {}),
         },
       });
 
@@ -1374,13 +1378,15 @@ export default function Dashboard() {
       const mapped = (Array.isArray(data) ? data : []).map((it) => ({
         id: it.contractId || `${it.uploadDate}_${it.name}`,
         name: it.name,
-        date: it.uploadDate ? it.uploadDate.slice(0, 8) : (it.uploadDate || "").slice(0, 10),
+        // uploadDate uses format YYYYMMDDThhmmssZ in lambda; keep human-friendly:
+        date: it.uploadDate ? `${it.uploadDate.slice(0,4)}-${it.uploadDate.slice(4,6)}-${it.uploadDate.slice(6,8)}` : (it.uploadDate || "").slice(0, 10),
         status: it.status || "active",
         size: it.size ? `${(it.size / (1024 * 1024)).toFixed(1)} MB` : it.size || "n/a",
         s3Key: it.s3Key || it.objectKey || null,
       }));
 
-      setContracts(mapped.reverse()); // newest first if you prefer
+      // Show newest first
+      setContracts(mapped.reverse());
     } catch (err) {
       console.error("fetchContracts error:", err);
       openAlert("Could not load contracts", err.message || "Unknown error", "error");
@@ -1419,11 +1425,15 @@ export default function Dashboard() {
     try {
       // 1) Ask API for a presigned URL and also write metadata to DynamoDB (your Lambda does this)
       const idToken = sessionStorage.getItem("idToken");
-      const presignResp = await fetch(API_URL, {
+      // Debug log
+      console.log("handleUpload: sending presign request. idToken length:", idToken ? idToken.length : null);
+
+      const presignResp = await fetch(`${API_URL}/contracts`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          ...(idToken ? { Authorization: `Bearer ${idToken}` } : {}),
+          // send raw idToken (no 'Bearer ' prefix)
+          ...(idToken ? { Authorization: idToken } : {}),
         },
         body: JSON.stringify({
           filename: file.name,
@@ -1450,7 +1460,7 @@ export default function Dashboard() {
         typeof presignData.body === "string" ? JSON.parse(presignData.body) : presignData;
 
       const uploadURL =
-        parsed.uploadUrl || parsed.uploadURL || parsed.uploadURL || parsed.upload_url || parsed.url;
+        parsed.uploadUrl || parsed.uploadURL || parsed.upload_url || parsed.url || parsed.uploadUrl;
       const objectKey = parsed.objectKey || parsed.object_key || parsed.key || parsed.s3Key;
       const contractId = parsed.contractId || parsed.contract_id;
 
@@ -1472,7 +1482,7 @@ export default function Dashboard() {
         throw new Error(`S3 upload failed: ${putResp.status} ${txt}`);
       }
 
-      // 3) Update UI - best is to re-fetch from DB (so UI matches DB)
+      // 3) Update UI - re-fetch from DB so UI matches DB
       await fetchContracts();
 
       openAlert("Upload successful", "Your PDF has been uploaded successfully.", "success");
@@ -1612,19 +1622,18 @@ export default function Dashboard() {
           </motion.button>
         </motion.div>
       </motion.div>
-
       {/* Stats, Upload section, Search & Contracts - same as earlier code */}
       {/* I didn't duplicate the rest in this snippet to keep it short — the earlier UI code you provided remains intact */}
       {/* You already have that code below in your file; these changes only add fetchContracts + send userId on presign. */}
 
       {/* Keep the rest of your file unchanged below */}
       {/* Stats Cards */}
-       <motion.div
+      <motion.div
          className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-8"
          initial={{ opacity: 0, y: 20 }}
          animate={{ opacity: 1, y: 0 }}
          transition={{ duration: 0.6, delay: 0.3 }}
-       >
+      >
          {stats.map((stat, index) => (
            <motion.div
              key={stat.label}
