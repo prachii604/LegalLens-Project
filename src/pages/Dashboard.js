@@ -1559,6 +1559,73 @@ export default function Dashboard() {
     },
   ];
 
+  // returns a short-lived signed GET URL for the given S3 key
+  const getSignedGetUrl = async (objectKey) => {
+    if (!objectKey) throw new Error("Missing objectKey");
+    const idToken = sessionStorage.getItem("idToken");
+    const userId = getUserId();
+
+    const resp = await fetch(`${API_URL}/contracts`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        ...(idToken ? { Authorization: idToken } : {}), // raw JWT for REST Cognito authorizer
+      },
+      body: JSON.stringify({
+        action: "get",                  // <-- tell backend: give me a GET url
+        objectKey: objectKey,           // S3 key from the item
+        userId: userId,                 // (the Lambda also checks token)
+      }),
+    });
+
+    const text = await resp.text();
+    if (!resp.ok) throw new Error(`Failed to get file URL: ${resp.status} ${text}`);
+
+    // support both proxy/non-proxy shapes
+    const data = (() => {
+      try { return JSON.parse(text); } catch { return {}; }
+    })();
+    const body = typeof data.body === "string" ? JSON.parse(data.body) : data;
+
+    const url =
+      body.getUrl || body.url || body.signedUrl || body.downloadUrl || body.viewUrl;
+    if (!url) throw new Error("No signed URL in response");
+    return url;
+  };
+
+  // Open PDF in a new tab
+  const handleView = async (contract) => {
+    try {
+      setLoading(true);
+      const url = await getSignedGetUrl(contract.s3Key);
+      window.open(url, "_blank", "noopener,noreferrer");
+    } catch (e) {
+      console.error(e);
+      openAlert("Cannot open file", e.message || "Unknown error", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // Force a download with the original filename
+  const handleDownload = async (contract) => {
+    try {
+      setLoading(true);
+      const url = await getSignedGetUrl(contract.s3Key);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = contract.name || "document.pdf";
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    } catch (e) {
+      console.error(e);
+      openAlert("Download failed", e.message || "Unknown error", "error");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-regal-offwhite to-regal-beige/30 px-6 py-8">
       {/* ... rest of your UI unchanged (I intentionally left this part unchanged) */}
@@ -1883,20 +1950,24 @@ export default function Dashboard() {
                      </div>
 
                      <div className={`flex gap-2 ${viewMode === "list" ? "" : "justify-center"}`}>
-                       <motion.button
-                         className="flex items-center gap-2 px-4 py-2 bg-regal-sage/20 text-regal-burgundy rounded-xl hover:bg-regal-sage/30 transition-all"
-                         whileHover={{ scale: 1.05 }}
-                         whileTap={{ scale: 0.95 }}
-                       >
+                        <motion.button
+                          onClick={() => handleView(contract)}
+                          disabled={!contract.s3Key}
+                          className="flex items-center gap-2 px-4 py-2 bg-regal-sage/20 text-regal-burgundy rounded-xl hover:bg-regal-sage/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
                          <Eye className="w-4 h-4" />
                          {viewMode === "grid" && <span className="text-sm">View</span>}
                        </motion.button>
 
-                       <motion.button
-                         className="flex items-center gap-2 px-4 py-2 bg-regal-gold/20 text-regal-burgundy rounded-xl hover:bg-regal-gold/30 transition-all"
-                         whileHover={{ scale: 1.05 }}
-                         whileTap={{ scale: 0.95 }}
-                       >
+                        <motion.button
+                          onClick={() => handleDownload(contract)}
+                          disabled={!contract.s3Key}
+                          className="flex items-center gap-2 px-4 py-2 bg-regal-gold/20 text-regal-burgundy rounded-xl hover:bg-regal-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
                          <Download className="w-4 h-4" />
                          {viewMode === "grid" && <span className="text-sm">Download</span>}
                        </motion.button>
