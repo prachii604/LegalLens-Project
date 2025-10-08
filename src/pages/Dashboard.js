@@ -1552,22 +1552,28 @@ export default function Dashboard() {
   };
 
 
-  // const filteredContracts = contracts.filter((contract) => {
-  //   const matchesSearch = contract.name
-  //     .toLowerCase()
-  //     .includes(searchTerm.toLowerCase());
-  //   const matchesFilter = filterStatus === "all" || contract.status === filterStatus;
+
+  // const filteredContracts = (contracts ?? [])
+  // .filter(c => !["processed"].includes(String(c?.status ?? "").toLowerCase())) // hide processed
+  // // .filter(c => !["processed","processing"].includes(String(c?.status ?? "").toLowerCase())) // <- use this line instead if you also want to hide "processing"
+  // .filter((contract) => {
+  //   const q = String(searchTerm ?? "").toLowerCase();
+  //   const name = String(contract?.name ?? "").toLowerCase();
+  //   const status = String(contract?.status ?? "active").toLowerCase();
+  //   const matchesSearch = name.includes(q);
+  //   const matchesFilter = filterStatus === "all" || status === filterStatus;
   //   return matchesSearch && matchesFilter;
   // });
-  const filteredContracts = (contracts ?? []).filter((contract) => {
-    const q = String(searchTerm ?? "").toLowerCase();
-    const name = String(contract?.name ?? "").toLowerCase();
-    const status = String(contract?.status ?? "active");
 
-    const matchesSearch = name.includes(q);
-    const matchesFilter = filterStatus === "all" || status === filterStatus;
-    return matchesSearch && matchesFilter;
-  });
+  const filteredContracts = visibleContracts.filter((contract) => {
+  const q = String(searchTerm ?? "").toLowerCase();
+  const name = String(contract?.name ?? "").toLowerCase();
+  const status = String(contract?.status ?? "active");
+  const matchesSearch = name.includes(q);
+  const matchesFilter = filterStatus === "all" || status === filterStatus;
+  return matchesSearch && matchesFilter;
+});
+
 
 
   const getStatusColor = (status) => {
@@ -1583,29 +1589,43 @@ export default function Dashboard() {
     }
   };
 
+  // Hide processed contracts from the UI entirely
+  const visibleContracts = (contracts ?? []).filter(
+    (c) => String(c?.status ?? "").toLowerCase() !== "processed"
+  );
+
+
+  // const stats = [
+  //   { label: "Total Contracts", value: contracts.length, icon: FileText, color: "text-blue-600" },
+  //   {
+  //     label: "Active",
+  //     value: contracts.filter((c) => c.status === "active").length,
+  //     icon: FileCheck,
+  //     color: "text-green-600",
+  //   },
+  //   {
+  //     label: "Pending",
+  //     value: contracts.filter((c) => c.status === "pending").length,
+  //     icon: Clock,
+  //     color: "text-yellow-600",
+  //   },
+  //   {
+  //     label: "This Month",
+  //     value:
+  //       contracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth())
+  //         .length,
+  //     icon: TrendingUp,
+  //     color: "text-purple-600",
+  //   },
+  // ];
+
   const stats = [
-    { label: "Total Contracts", value: contracts.length, icon: FileText, color: "text-blue-600" },
-    {
-      label: "Active",
-      value: contracts.filter((c) => c.status === "active").length,
-      icon: FileCheck,
-      color: "text-green-600",
-    },
-    {
-      label: "Pending",
-      value: contracts.filter((c) => c.status === "pending").length,
-      icon: Clock,
-      color: "text-yellow-600",
-    },
-    {
-      label: "This Month",
-      value:
-        contracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth())
-          .length,
-      icon: TrendingUp,
-      color: "text-purple-600",
-    },
-  ];
+  { label: "Total Contracts", value: visibleContracts.length, icon: FileText, color: "text-blue-600" },
+  { label: "Active",  value: visibleContracts.filter((c) => c.status === "active").length,  icon: FileCheck, color: "text-green-600" },
+  { label: "Pending", value: visibleContracts.filter((c) => c.status === "pending").length, icon: Clock,     color: "text-yellow-600" },
+  { label: "This Month", value: visibleContracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth()).length,
+    icon: TrendingUp, color: "text-purple-600" },
+];
 
   // returns a short-lived signed GET URL for the given S3 key
   const getSignedGetUrl = async (objectKey) => {
