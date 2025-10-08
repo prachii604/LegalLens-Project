@@ -1552,13 +1552,23 @@ export default function Dashboard() {
   };
 
 
-  const filteredContracts = contracts.filter((contract) => {
-    const matchesSearch = contract.name
-      .toLowerCase()
-      .includes(searchTerm.toLowerCase());
-    const matchesFilter = filterStatus === "all" || contract.status === filterStatus;
+  // const filteredContracts = contracts.filter((contract) => {
+  //   const matchesSearch = contract.name
+  //     .toLowerCase()
+  //     .includes(searchTerm.toLowerCase());
+  //   const matchesFilter = filterStatus === "all" || contract.status === filterStatus;
+  //   return matchesSearch && matchesFilter;
+  // });
+  const filteredContracts = (contracts ?? []).filter((contract) => {
+    const q = String(searchTerm ?? "").toLowerCase();
+    const name = String(contract?.name ?? "").toLowerCase();
+    const status = String(contract?.status ?? "active");
+
+    const matchesSearch = name.includes(q);
+    const matchesFilter = filterStatus === "all" || status === filterStatus;
     return matchesSearch && matchesFilter;
   });
+
 
   const getStatusColor = (status) => {
     switch (status) {
