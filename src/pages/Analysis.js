@@ -4,6 +4,16 @@ import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod";
 
+const idToken = sessionStorage.getItem("idToken");
+const userId = getUserId(); // same helper as Dashboard
+const resp = await fetch(`${API_URL}/analysis?userId=${encodeURIComponent(userId)}&contractId=${encodeURIComponent(contractIdFromRoute)}`, {
+  method: "GET",
+  headers: {
+    "Content-Type": "application/json",
+    ...(idToken ? { Authorization: idToken } : {}),
+  },
+});
+
 const decodeJwtPayload = (token) => {
   try {
     if (!token) return null;

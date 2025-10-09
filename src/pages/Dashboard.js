@@ -2043,29 +2043,7 @@ export default function Dashboard() {
          </AnimatePresence>
        </motion.div>
 
-       {/* Quick Actions Floating Button
-       <motion.div
-         className="fixed bottom-8 right-8"
-         initial={{ opacity: 0, scale: 0 }}
-         animate={{ opacity: 1, scale: 1 }}
-         transition={{ delay: 1, type: "spring" }}
-       >
-         <motion.button
-           className="p-4 bg-gradient-to-r from-regal-burgundy to-regal-burgundy/80 text-white rounded-full shadow-2xl"
-           whileHover={{ scale: 1.1, rotate: 90 }}
-           whileTap={{ scale: 0.9 }}
-           animate={{
-             boxShadow: [
-               "0 10px 25px rgba(0,0,0,0.1)",
-               "0 20px 40px rgba(0,0,0,0.2)",
-               "0 10px 25px rgba(0,0,0,0.1)",
-             ],
-           }}
-           transition={{ duration: 2, repeat: Infinity }}
-         >
-           <Plus className="w-6 h-6" />
-         </motion.button>
-       </motion.div> */}
+       
 
        {/* Loading Overlay */}
        <AnimatePresence>
