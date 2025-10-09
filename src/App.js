@@ -38,6 +38,8 @@ export default function App() {
         <Route path="/register" element={<Register />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/profile" element={<Profile />} />
+        <Route path="/analysis/:contractId" element={<Analysis />} />
+
         
       </Routes>
     </Router>

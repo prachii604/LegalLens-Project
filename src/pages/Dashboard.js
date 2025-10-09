@@ -2001,37 +2001,40 @@ export default function Dashboard() {
                      </div>
 
                      <div className={`flex gap-2 ${viewMode === "list" ? "" : "justify-center"}`}>
-                        <motion.button
-                          onClick={() => handleView(contract)}
-                          disabled={!contract.s3Key}
-                          className="flex items-center gap-2 px-4 py-2 bg-regal-sage/20 text-regal-burgundy rounded-xl hover:bg-regal-sage/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                         <Eye className="w-4 h-4" />
-                         {viewMode === "grid" && <span className="text-sm">View</span>}
-                       </motion.button>
+                      {/* View */}
+                      <motion.button
+                        onClick={() => handleView(contract)}
+                        disabled={!contract.s3Key}
+                        className="flex items-center gap-2 px-4 py-2 bg-regal-sage/20 text-regal-burgundy rounded-xl hover:bg-regal-sage/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Eye className="w-4 h-4" />
+                        {viewMode === "grid" && <span className="text-sm">View</span>}
+                      </motion.button>
 
-                        {/* <motion.button
-                          onClick={() => handleDownload(contract)}
-                          disabled={!contract.s3Key}
-                          className="flex items-center gap-2 px-4 py-2 bg-regal-gold/20 text-regal-burgundy rounded-xl hover:bg-regal-gold/30 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-                          whileHover={{ scale: 1.05 }}
-                          whileTap={{ scale: 0.95 }}
-                        >
-                         <Download className="w-4 h-4" />
-                         {viewMode === "grid" && <span className="text-sm">Download</span>}
-                       </motion.button> */}
+                      {/* Analysis */}
+                      <motion.button
+                        onClick={() => navigate(`/analysis/${contract.id}`)}
+                        className="flex items-center gap-2 px-4 py-2 bg-regal-gold/10 text-regal-burgundy rounded-xl hover:bg-regal-gold/20 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <TrendingUp className="w-4 h-4" />
+                        {viewMode === "grid" && <span className="text-sm">Analysis</span>}
+                      </motion.button>
 
-                       <motion.button
-                         onClick={() => handleDeleteContract(contract.id)}
-                         className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
-                         whileHover={{ scale: 1.05 }}
-                         whileTap={{ scale: 0.95 }}
-                       >
-                         <Trash2 className="w-4 h-4" />
-                       </motion.button>
-                     </div>
+                      {/* Delete (keep your existing handler/styles) */}
+                      <motion.button
+                        onClick={() => handleDeleteContract(contract.id)}
+                        className="flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-all"
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </motion.button>
+                    </div>
+
                    </motion.div>
                  ))}
                </AnimatePresence>
