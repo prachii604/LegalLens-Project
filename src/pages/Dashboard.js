@@ -1565,15 +1565,6 @@ export default function Dashboard() {
   //   return matchesSearch && matchesFilter;
   // });
 
-  const filteredContracts = visibleContracts.filter((contract) => {
-  const q = String(searchTerm ?? "").toLowerCase();
-  const name = String(contract?.name ?? "").toLowerCase();
-  const status = String(contract?.status ?? "active");
-  const matchesSearch = name.includes(q);
-  const matchesFilter = filterStatus === "all" || status === filterStatus;
-  return matchesSearch && matchesFilter;
-});
-
 
 
   const getStatusColor = (status) => {
@@ -1593,6 +1584,16 @@ export default function Dashboard() {
   const visibleContracts = (contracts ?? []).filter(
     (c) => String(c?.status ?? "").toLowerCase() !== "processed"
   );
+
+    const filteredContracts = visibleContracts.filter((contract) => {
+  const q = String(searchTerm ?? "").toLowerCase();
+  const name = String(contract?.name ?? "").toLowerCase();
+  const status = String(contract?.status ?? "active");
+  const matchesSearch = name.includes(q);
+  const matchesFilter = filterStatus === "all" || status === filterStatus;
+  return matchesSearch && matchesFilter;
+});
+
 
 
   // const stats = [
