@@ -4,16 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod";
 
-const idToken = sessionStorage.getItem("idToken");
-const userId = getUserId(); // same helper as Dashboard
-const resp = await fetch(`${API_URL}/analysis?userId=${encodeURIComponent(userId)}&contractId=${encodeURIComponent(contractIdFromRoute)}`, {
-  method: "GET",
-  headers: {
-    "Content-Type": "application/json",
-    ...(idToken ? { Authorization: idToken } : {}),
-  },
-});
-
+// --- helpers (same shape as Dashboard) ---
 const decodeJwtPayload = (token) => {
   try {
     if (!token) return null;
@@ -24,7 +15,9 @@ const decodeJwtPayload = (token) => {
     if (pad) payload += "=".repeat(4 - pad);
     const decoded = atob(payload.replace(/-/g, "+").replace(/_/g, "/"));
     return JSON.parse(decoded);
-  } catch { return null; }
+  } catch {
+    return null;
+  }
 };
 
 const getUserId = () => {
@@ -57,16 +50,14 @@ export default function Analysis() {
             ...(idToken ? { Authorization: idToken } : {}),
           },
           body: JSON.stringify({
-            action: "analysis_get",
+            action: "analysis_get", // backend must support this
             userId,
             contractId,
           }),
         });
-        if (!resp.ok) {
-          const t = await resp.text();
-          throw new Error(t || `HTTP ${resp.status}`);
-        }
-        const json = await resp.json();
+        const text = await resp.text();
+        if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+        const json = (() => { try { return JSON.parse(text); } catch { return {}; } })();
         setData(json);
       } catch (e) {
         setErr(e.message || "Failed to fetch analysis");
@@ -77,10 +68,20 @@ export default function Analysis() {
     fetchAnalysis();
   }, [contractId]);
 
+  // Small renderer helpers
+  const pretty = (v) =>
+    typeof v === "string"
+      ? v
+      : v == null
+      ? "—"
+      : JSON.stringify(v, null, 2);
+
   const Section = ({ title, value }) => (
     <div className="bg-white rounded-xl border border-regal-beige/50 p-4">
       <h3 className="font-semibold text-regal-burgundy mb-2">{title}</h3>
-      <pre className="whitespace-pre-wrap text-sm text-regal-black/80">{value || "—"}</pre>
+      <pre className="whitespace-pre-wrap text-sm text-regal-black/80">
+        {pretty(value)}
+      </pre>
     </div>
   );
 
@@ -103,14 +104,15 @@ export default function Analysis() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Section title="Risk" value={data?.Risk} />
             <Section title="Benefits" value={data?.Benefits} />
-            <Section title="Clauses" value={JSON.stringify(data?.Clauses ?? {}, null, 2)} />
+            <Section title="Clauses" value={data?.Clauses} />
             <Section title="Renewal" value={data?.Renewal} />
-            <Section title="Red Flags" value={Array.isArray(data?.RedFlags) ? data.RedFlags.join("\n") : data?.RedFlags} />
-            {/* Raw JSON if you want */}
+            <Section title="Red Flags" value={data?.RedFlags} />
+
+            {/* Raw JSON */}
             <div className="md:col-span-2 bg-white rounded-xl border border-regal-beige/50 p-4">
               <h3 className="font-semibold text-regal-burgundy mb-2">Raw JSON</h3>
               <pre className="text-xs whitespace-pre-wrap">
-                {JSON.stringify(data ?? {}, null, 2)}
+                {pretty(data)}
               </pre>
             </div>
           </div>
