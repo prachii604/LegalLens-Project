@@ -1370,15 +1370,30 @@ export default function Dashboard() {
         return;
       }
 
-      const data = await resp.json();
-      const mapped = (Array.isArray(data) ? data : []).map((it) => ({
-        id: it.contractId || `${it.uploadDate}_${it.name}`,
-        name: it.name,
-        date: it.uploadDate ? `${it.uploadDate.slice(0,4)}-${it.uploadDate.slice(4,6)}-${it.uploadDate.slice(6,8)}` : (it.uploadDate || "").slice(0, 10),
-        status: it.status || "active",
-        size: it.size ? `${(it.size / (1024 * 1024)).toFixed(1)} MB` : it.size || "n/a",
-        s3Key: it.s3Key || it.objectKey || null,
-      }));
+      const json = await resp.json();
+      const mapped = (Array.isArray(json) ? json : []).map((it, idx) => {
+        const contractId = it?.contractId ?? "";
+        const rawDate = String(it?.uploadDate ?? "");
+        const date =
+          rawDate.length === 8
+            ? `${rawDate.slice(0,4)}-${rawDate.slice(4,6)}-${rawDate.slice(6,8)}`
+            : rawDate.slice(0, 10);
+
+        return {
+          // Use contractId for routing; 'id' is just a stable React key fallback
+          contractId,
+          id: contractId || `row-${idx}`,
+          name: it?.name ?? "Untitled",
+          date,
+          status: it?.status || "active",
+          size:
+            typeof it?.size === "number"
+              ? `${(it.size / (1024 * 1024)).toFixed(1)} MB`
+              : it?.size || "n/a",
+          s3Key: it?.s3Key || it?.objectKey || null,
+        };
+      });
+
 
       setContracts(mapped.reverse());
     } catch (err) {
