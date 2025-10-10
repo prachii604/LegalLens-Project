@@ -1581,52 +1581,49 @@ export default function Dashboard() {
   };
 
   // Hide processed contracts from the UI entirely
-  const visibleContracts = (contracts ?? []).filter(
-    (c) => String(c?.status ?? "").toLowerCase() !== "processed"
+//   const visibleContracts = (contracts ?? []).filter(
+//     (c) => String(c?.status ?? "").toLowerCase() !== "processed"
+//   );
+
+//     const filteredContracts = visibleContracts.filter((contract) => {
+//   const q = String(searchTerm ?? "").toLowerCase();
+//   const name = String(contract?.name ?? "").toLowerCase();
+//   const status = String(contract?.status ?? "active");
+//   const matchesSearch = name.includes(q);
+//   const matchesFilter = filterStatus === "all" || status === filterStatus;
+//   return matchesSearch && matchesFilter;
+// });
+
+
+
+//   const stats = [
+//   { label: "Total Contracts", value: visibleContracts.length, icon: FileText, color: "text-blue-600" },
+//   { label: "Active",  value: visibleContracts.filter((c) => c.status === "active").length,  icon: FileCheck, color: "text-green-600" },
+//   { label: "Pending", value: visibleContracts.filter((c) => c.status === "pending").length, icon: Clock,     color: "text-yellow-600" },
+//   { label: "This Month", value: visibleContracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth()).length,
+//     icon: TrendingUp, color: "text-purple-600" },
+// ];
+    const filteredContracts = (contracts ?? [])
+    .filter(c => (c?.status ?? "").toLowerCase() !== "processed")
+    .filter((contract) => {
+      const q = String(searchTerm ?? "").toLowerCase();
+      const name = String(contract?.name ?? "").toLowerCase();
+      const status = String(contract?.status ?? "active").toLowerCase();
+      const matchesSearch = name.includes(q);
+      const matchesFilter = filterStatus === "all" || status === filterStatus;
+      return matchesSearch && matchesFilter;
+    });
+
+  // Stats that also ignore processed
+  const visible = (contracts ?? []).filter(
+    c => (c?.status ?? "").toLowerCase() !== "processed"
   );
-
-    const filteredContracts = visibleContracts.filter((contract) => {
-  const q = String(searchTerm ?? "").toLowerCase();
-  const name = String(contract?.name ?? "").toLowerCase();
-  const status = String(contract?.status ?? "active");
-  const matchesSearch = name.includes(q);
-  const matchesFilter = filterStatus === "all" || status === filterStatus;
-  return matchesSearch && matchesFilter;
-});
-
-
-
-  // const stats = [
-  //   { label: "Total Contracts", value: contracts.length, icon: FileText, color: "text-blue-600" },
-  //   {
-  //     label: "Active",
-  //     value: contracts.filter((c) => c.status === "active").length,
-  //     icon: FileCheck,
-  //     color: "text-green-600",
-  //   },
-  //   {
-  //     label: "Pending",
-  //     value: contracts.filter((c) => c.status === "pending").length,
-  //     icon: Clock,
-  //     color: "text-yellow-600",
-  //   },
-  //   {
-  //     label: "This Month",
-  //     value:
-  //       contracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth())
-  //         .length,
-  //     icon: TrendingUp,
-  //     color: "text-purple-600",
-  //   },
-  // ];
-
   const stats = [
-  { label: "Total Contracts", value: visibleContracts.length, icon: FileText, color: "text-blue-600" },
-  { label: "Active",  value: visibleContracts.filter((c) => c.status === "active").length,  icon: FileCheck, color: "text-green-600" },
-  { label: "Pending", value: visibleContracts.filter((c) => c.status === "pending").length, icon: Clock,     color: "text-yellow-600" },
-  { label: "This Month", value: visibleContracts.filter((c) => new Date(c.date).getMonth() === new Date().getMonth()).length,
-    icon: TrendingUp, color: "text-purple-600" },
-];
+    { label: "Total Contracts", value: visible.length, icon: FileText, color: "text-blue-600" },
+    { label: "Active",   value: visible.filter(c => (c.status||"").toLowerCase()==="active").length,   icon: FileCheck, color: "text-green-600" },
+    { label: "Pending",  value: visible.filter(c => (c.status||"").toLowerCase()==="pending").length,  icon: Clock,     color: "text-yellow-600" },
+    { label: "This Month", value: visible.filter(c => new Date(c.date).getMonth() === new Date().getMonth()).length, icon: TrendingUp, color: "text-purple-600" },
+  ];
 
   // returns a short-lived signed GET URL for the given S3 key
   const getSignedGetUrl = async (objectKey) => {

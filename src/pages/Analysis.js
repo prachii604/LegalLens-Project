@@ -4,7 +4,7 @@ import { useParams, useNavigate } from "react-router-dom";
 
 const API_URL = "https://tsq50u94z7.execute-api.ap-south-1.amazonaws.com/prod";
 
-// -------- helpers (same as Dashboard) --------
+// --- helpers (same as Dashboard) ---
 const decodeJwtPayload = (token) => {
   try {
     if (!token) return null;
@@ -32,27 +32,28 @@ const getUserId = () => {
 };
 
 export default function Analysis() {
-  const { contractId } = useParams(); // comes from /analysis/:contractId
+  const { contractId } = useParams();
   const navigate = useNavigate();
-
   const [data, setData] = useState(null);
   const [err, setErr] = useState("");
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const fetchAnalysis = async () => {
-      setLoading(true);
-      setErr("");
+      const userId = getUserId();
+      const idToken = sessionStorage.getItem("idToken");
+      if (!userId || !idToken) {
+        setErr("Not signed in");
+        setLoading(false);
+        return;
+      }
       try {
-        const userId = getUserId();
-        if (!userId) throw new Error("No userId available");
-
-        const idToken = sessionStorage.getItem("idToken");
         const resp = await fetch(`${API_URL}/contracts`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            ...(idToken ? { Authorization: idToken } : {}),
+            // send Bearer to satisfy some authorizers
+            Authorization: `Bearer ${idToken}`,
           },
           body: JSON.stringify({
             action: "analysis_get",
@@ -61,25 +62,22 @@ export default function Analysis() {
           }),
         });
 
+        if (resp.status === 401) {
+          setErr("The incoming token has expired");
+          setLoading(false);
+          return;
+        }
+
         const text = await resp.text();
         if (!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
-
-        const json = (() => {
-          try {
-            return JSON.parse(text);
-          } catch {
-            return {};
-          }
-        })();
-
-        setData(json || {});
+        const json = (() => { try { return JSON.parse(text); } catch { return {}; } })();
+        setData(json);
       } catch (e) {
         setErr(e.message || "Failed to fetch analysis");
       } finally {
         setLoading(false);
       }
     };
-
     fetchAnalysis();
   }, [contractId]);
 
@@ -89,9 +87,7 @@ export default function Analysis() {
   const Section = ({ title, value }) => (
     <div className="bg-white rounded-xl border border-regal-beige/50 p-4">
       <h3 className="font-semibold text-regal-burgundy mb-2">{title}</h3>
-      <pre className="whitespace-pre-wrap text-sm text-regal-black/80">
-        {pretty(value)}
-      </pre>
+      <pre className="whitespace-pre-wrap text-sm text-regal-black/80">{pretty(value)}</pre>
     </div>
   );
 
@@ -109,8 +105,7 @@ export default function Analysis() {
         </div>
 
         {loading && <div className="text-regal-black/70">Loading analysis…</div>}
-        {err && <div className="text-red-600">Error: {pretty(err)}</div>}
-
+        {err && <div className="text-red-600">Error: {err}</div>}
         {!loading && !err && (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Section title="Risk" value={data?.Risk} />
@@ -118,7 +113,6 @@ export default function Analysis() {
             <Section title="Clauses" value={data?.Clauses} />
             <Section title="Renewal" value={data?.Renewal} />
             <Section title="Red Flags" value={data?.RedFlags} />
-
             <div className="md:col-span-2 bg-white rounded-xl border border-regal-beige/50 p-4">
               <h3 className="font-semibold text-regal-burgundy mb-2">Raw JSON</h3>
               <pre className="text-xs whitespace-pre-wrap">{pretty(data)}</pre>
