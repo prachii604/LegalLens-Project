@@ -48,7 +48,7 @@ export default function Analysis() {
         return;
       }
       try {
-        const resp = await fetch(`${API_URL}/contracts`, {
+        const resp = await fetch(`${API_URL}/analysis`, {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
