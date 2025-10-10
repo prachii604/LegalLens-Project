@@ -52,9 +52,8 @@ export default function Analysis() {
           method: "POST",
           headers: {
             "Content-Type": "application/json",
-            // send Bearer to satisfy some authorizers
-            Authorization: `Bearer ${idToken}`,
-          },
+            ...(idToken ? { Authorization: idToken } : {}),
+        },
           body: JSON.stringify({
             action: "analysis_get",
             userId,
