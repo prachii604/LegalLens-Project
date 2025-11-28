@@ -2027,7 +2027,7 @@ export default function Dashboard() {
 
                       {/* Analysis */}
                       <motion.button
-                        onClick={() => navigate(`/analysis/${contract.id}`)}
+                        onClick={() => navigate(`/analysis/${contract.contractId || contract.id}`)}
                         className="flex items-center gap-2 px-4 py-2 bg-regal-gold/10 text-regal-burgundy rounded-xl hover:bg-regal-gold/20 transition-all"
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
